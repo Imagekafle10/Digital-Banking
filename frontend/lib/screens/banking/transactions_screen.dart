@@ -125,7 +125,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                               Center(
                                 child: Text(
                                   'No transactions found',
-                                  style: TextStyle(color: AppColors.textSecondary),
+                                  style:
+                                      TextStyle(color: AppColors.textSecondary),
                                 ),
                               ),
                             ],
@@ -135,22 +136,27 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                               if (_hasMore &&
                                   !_isLoading &&
                                   notification.metrics.pixels >=
-                                      notification.metrics.maxScrollExtent - 200) {
+                                      notification.metrics.maxScrollExtent -
+                                          200) {
                                 _load();
                               }
                               return false;
                             },
                             child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              itemCount: _transactions.length + (_hasMore ? 1 : 0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              itemCount:
+                                  _transactions.length + (_hasMore ? 1 : 0),
                               itemBuilder: (context, index) {
                                 if (index >= _transactions.length) {
                                   return const Padding(
                                     padding: EdgeInsets.symmetric(vertical: 20),
-                                    child: Center(child: CircularProgressIndicator()),
+                                    child: Center(
+                                        child: CircularProgressIndicator()),
                                   );
                                 }
                                 final tx = _transactions[index];
+                                // Other user name, date, Rs
                                 return Column(
                                   children: [
                                     TransactionTile(

@@ -7,13 +7,30 @@ import '../models/account.dart';
 class BalanceCard extends StatelessWidget {
   final BankAccount account;
 
-  const BalanceCard({super.key, required this.account});
+  /// Optional holder name shown under the account type.
+  final String? accountName;
+
+  const BalanceCard({
+    super.key,
+    required this.account,
+    this.accountName,
+  });
+
+  static final Map<String, NumberFormat> _formatCache = {};
+
+  String _currencySymbol(String currency) {
+    if (currency.toUpperCase() == 'NPR') return 'Rs ';
+    return '$currency ';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final format = NumberFormat.currency(
-      symbol: '${account.currency} ',
-      decimalDigits: 2,
+    final format = _formatCache.putIfAbsent(
+      account.currency,
+      () => NumberFormat.currency(
+        symbol: _currencySymbol(account.currency),
+        decimalDigits: 2,
+      ),
     );
 
     return Container(
@@ -63,7 +80,20 @@ class BalanceCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          if (accountName != null && accountName!.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              accountName!.trim(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+          const SizedBox(height: 16),
           Text(
             format.format(account.balance),
             style: const TextStyle(
@@ -73,7 +103,7 @@ class BalanceCard extends StatelessWidget {
               letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 18),
           Row(
             children: [
               const Icon(Icons.credit_card, color: Colors.white70, size: 16),

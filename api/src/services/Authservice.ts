@@ -88,4 +88,10 @@ const logout = async (userId: string) => {
   await User.setRefreshTokenHash(userId, null);
 };
 
-export default { register, login, refresh, logout };
+const getMe = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+  return toSafeUser(user);
+};
+
+export default { register, login, refresh, logout, getMe };

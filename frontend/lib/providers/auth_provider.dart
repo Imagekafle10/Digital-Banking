@@ -12,12 +12,22 @@ class AuthProvider extends ChangeNotifier {
   AuthStatus status = AuthStatus.unknown;
   AppUser? user;
 
-  /// Called once at startup after [ApiClient.init]. Tries a silent refresh
-  /// using the persisted refresh-token cookie so a returning user lands
-  /// straight on the dashboard instead of the login screen.
   Future<void> bootstrap() async {
     final refreshed = await ApiClient.instance.trySilentRefresh();
-    status = refreshed ? AuthStatus.authenticated : AuthStatus.unauthenticated;
+    if (!refreshed) {
+      user = null;
+      status = AuthStatus.unauthenticated;
+      notifyListeners();
+      return;
+    }
+    try {
+      user = await _authService.getMe();
+      status = AuthStatus.authenticated;
+    } catch (_) {
+      user = null;
+      status = AuthStatus.unauthenticated;
+      await ApiClient.instance.clearAccessToken();
+    }
     notifyListeners();
   }
 

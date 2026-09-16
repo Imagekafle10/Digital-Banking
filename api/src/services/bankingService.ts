@@ -2,6 +2,7 @@ import { PoolConnection } from "mysql2/promise";
 import pool from "../config/database";
 import Account from "../models/Account";
 import Transaction from "../models/Transaction";
+import User from "../models/User";
 import {
   CreateAccountInput,
   DepositInput,
@@ -12,17 +13,33 @@ import {
 import { generateAccountNumber, generateReference } from "../utils/generators";
 
 const createAccount = async (input: CreateAccountInput) => {
-  try {
-    const accountNumber = generateAccountNumber();
-    return await Account.createAccount({
-      userId: input.userId,
-      accountNumber,
-      accountType: input.accountType,
-      currency: input.currency || "NPR",
-    });
-  } catch (error) {
-    throw new Error(error as string);
+  // Retry a few times if the rare UNIQUE collision on accountNumber happens
+  const maxAttempts = 5;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const accountNumber = generateAccountNumber();
+      return await Account.createAccount({
+        userId: input.userId,
+        accountNumber,
+        accountType: input.accountType,
+        currency: input.currency || "NPR",
+      });
+    } catch (error) {
+      lastError = error;
+      const message = String(error);
+      // MySQL duplicate key → try another number
+      if (message.includes("Duplicate") || message.includes("ER_DUP_ENTRY")) {
+        continue;
+      }
+      throw new Error(message);
+    }
   }
+  throw new Error(
+    lastError
+      ? String(lastError)
+      : "Could not generate a unique account number",
+  );
 };
 
 const getAccountByUserId = async (userId: string) => {
@@ -66,7 +83,7 @@ const deposit = async ({ accountId, amount, remarks }: DepositInput) => {
         status: "completed",
         remarks,
       },
-      connection
+      connection,
     );
 
     await connection.commit();
@@ -107,7 +124,7 @@ const withdraw = async ({ accountId, amount, remarks }: WithdrawInput) => {
         status: "completed",
         remarks,
       },
-      connection
+      connection,
     );
 
     await connection.commit();
@@ -126,8 +143,7 @@ const transfer = async ({
   amount,
   remarks,
 }: TransferInput) => {
-  if (amount <= 0)
-    throw new Error("Transfer amount must be greater than zero");
+  if (amount <= 0) throw new Error("Transfer amount must be greater than zero");
 
   const connection: PoolConnection = await pool.getConnection();
   try {
@@ -135,7 +151,7 @@ const transfer = async ({
 
     const fromAccount = await Account.findByIdForUpdate(
       fromAccountId,
-      connection
+      connection,
     );
     if (!fromAccount) throw new Error("Source account not found");
     if (fromAccount.status !== "active")
@@ -143,7 +159,7 @@ const transfer = async ({
 
     const toAccount = await Account.findByAccountNumberForUpdate(
       toAccountNumber,
-      connection
+      connection,
     );
     if (!toAccount) throw new Error("Destination account not found");
     if (toAccount.status !== "active")
@@ -159,7 +175,8 @@ const transfer = async ({
     await Account.updateBalance(fromAccount.id, newFromBalance, connection);
     await Account.updateBalance(toAccount.id, newToBalance, connection);
 
-    const reference = generateReference("TRF");
+    const outReference = generateReference("TRF");
+    const inReference = generateReference("TRF");
 
     const outTransaction = await Transaction.createTransaction(
       {
@@ -167,12 +184,12 @@ const transfer = async ({
         type: "transfer_out",
         amount,
         balanceAfter: newFromBalance,
-        reference,
+        reference: outReference,
         relatedAccountId: toAccount.id,
         status: "completed",
         remarks,
       },
-      connection
+      connection,
     );
 
     await Transaction.createTransaction(
@@ -181,16 +198,25 @@ const transfer = async ({
         type: "transfer_in",
         amount,
         balanceAfter: newToBalance,
-        reference,
+        reference: inReference,
         relatedAccountId: fromAccount.id,
         status: "completed",
         remarks,
       },
-      connection
+      connection,
     );
 
     await connection.commit();
-    return outTransaction;
+
+    // Enrich so the app can show other user name + account number immediately
+    const toUser = await User.findById(toAccount.userId);
+    return {
+      ...outTransaction,
+      amount: Number(outTransaction.amount),
+      balanceAfter: Number(outTransaction.balanceAfter),
+      relatedAccountNumber: toAccount.accountNumber,
+      counterpartyName: toUser?.fullName ?? null,
+    };
   } catch (error) {
     await connection.rollback();
     throw new Error(error as string);

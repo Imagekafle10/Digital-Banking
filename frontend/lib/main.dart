@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/account_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/favourite_provider.dart';
 import 'screens/splash/splash_screen.dart';
 import 'services/api_client.dart';
 
@@ -22,6 +23,7 @@ class NepalBankApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => AccountProvider()),
+        ChangeNotifierProvider(create: (_) => FavouriteProvider()),
       ],
       child: MaterialApp(
         title: 'Image Bank',

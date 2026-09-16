@@ -16,11 +16,9 @@ const validate =
 
 export const createAccountValidation = validate(
   Joi.object({
-    accountType: Joi.string()
-      .valid("savings", "checking", "wallet")
-      .required(),
+    accountType: Joi.string().valid("savings", "checking", "wallet").required(),
     currency: Joi.string().length(3).optional(),
-  })
+  }),
 );
 
 export const depositValidation = validate(
@@ -28,7 +26,7 @@ export const depositValidation = validate(
     accountId: Joi.string().uuid().required(),
     amount: Joi.number().positive().required(),
     remarks: Joi.string().max(255).optional(),
-  })
+  }),
 );
 
 export const withdrawValidation = validate(
@@ -36,14 +34,20 @@ export const withdrawValidation = validate(
     accountId: Joi.string().uuid().required(),
     amount: Joi.number().positive().required(),
     remarks: Joi.string().max(255).optional(),
-  })
+  }),
 );
 
 export const transferValidation = validate(
   Joi.object({
     fromAccountId: Joi.string().uuid().required(),
-    toAccountNumber: Joi.string().required(),
+    // Exactly 16 digits, numbers only
+    toAccountNumber: Joi.string()
+      .pattern(/^\d{16}$/)
+      .required()
+      .messages({
+        "string.pattern.base": "Account number must be exactly 16 digits",
+      }),
     amount: Joi.number().positive().required(),
     remarks: Joi.string().max(255).optional(),
-  })
+  }),
 );

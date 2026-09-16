@@ -14,13 +14,49 @@ class TransactionTile extends StatelessWidget {
     this.currency = 'NPR',
   });
 
+  static final Map<String, NumberFormat> _formatCache = {};
+
+  String _currencySymbol(String currency) {
+    if (currency.toUpperCase() == 'NPR') return 'Rs ';
+    return '$currency ';
+  }
+
+  NumberFormat _formatFor(String currency) => _formatCache.putIfAbsent(
+        currency,
+        () => NumberFormat.currency(
+          symbol: _currencySymbol(currency),
+          decimalDigits: 2,
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     final isCredit = transaction.isCredit;
-    final format = NumberFormat.currency(symbol: '$currency ', decimalDigits: 2);
+    final format = _formatFor(currency);
     final dateLabel = transaction.createdAt != null
-        ? DateFormat('MMM d, h:mm a').format(transaction.createdAt!.toLocal())
-        : '';
+        ? DateFormat('MMM d, yyyy · h:mm a')
+            .format(transaction.createdAt!.toLocal())
+        : '—';
+
+    // Other user / party name (for transfers), else activity label
+    final partyName = transaction.displayPartyName;
+
+    // Secondary line: type + optional account number of other party
+    String secondary;
+    if (transaction.isTransfer) {
+      final parts = <String>[transaction.typeLabel];
+      if (transaction.relatedAccountNumber != null &&
+          transaction.relatedAccountNumber!.isNotEmpty &&
+          partyName != transaction.relatedAccountNumber) {
+        parts.add('A/C ${transaction.relatedAccountNumber}');
+      }
+      secondary = parts.join(' · ');
+    } else if (transaction.remarks?.isNotEmpty == true &&
+        partyName != transaction.remarks) {
+      secondary = '${transaction.typeLabel} · ${transaction.remarks}';
+    } else {
+      secondary = transaction.typeLabel;
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -35,9 +71,7 @@ class TransactionTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
-              isCredit
-                  ? Icons.south_west_rounded
-                  : Icons.north_east_rounded,
+              isCredit ? Icons.south_west_rounded : Icons.north_east_rounded,
               color: isCredit ? AppColors.success : AppColors.primary,
               size: 20,
             ),
@@ -47,19 +81,20 @@ class TransactionTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Other user / party name
                 Text(
-                  transaction.typeLabel,
+                  partyName,
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14.5,
                     color: AppColors.textPrimary,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  transaction.remarks?.isNotEmpty == true
-                      ? transaction.remarks!
-                      : (dateLabel.isNotEmpty ? dateLabel : transaction.status),
+                  secondary,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -67,10 +102,20 @@ class TransactionTile extends StatelessWidget {
                     color: AppColors.textSecondary,
                   ),
                 ),
+                const SizedBox(height: 2),
+                // Date
+                Text(
+                  dateLabel,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
           const SizedBox(width: 8),
+          // Amount in Rs
           Text(
             '${isCredit ? '+' : '-'}${format.format(transaction.amount)}',
             style: TextStyle(
