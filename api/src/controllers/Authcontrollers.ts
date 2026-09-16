@@ -65,4 +65,16 @@ const logout = async (req: AuthRequest, res: Response, next: NextFunction) => {
   }
 };
 
-export default { register, login, refresh, logout };
+const getMe = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const user = await authService.getMe(req.user.id);
+    return res.status(200).json({ data: { user } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default { register, login, refresh, logout, getMe };

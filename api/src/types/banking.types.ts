@@ -30,6 +30,9 @@ export interface ITransaction {
   status: TransactionStatus;
   remarks?: string;
   createdAt?: Date;
+  /** Present on history / enriched responses */
+  relatedAccountNumber?: string | null;
+  counterpartyName?: string | null;
 }
 
 export interface CreateAccountInput {

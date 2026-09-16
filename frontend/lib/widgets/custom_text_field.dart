@@ -11,6 +11,8 @@ class CustomTextField extends StatefulWidget {
   final IconData? icon;
   final String? Function(String?)? validator;
   final Widget? prefix;
+  final Widget? suffix;
+  final Iterable<String>? autofillHints;
 
   const CustomTextField({
     super.key,
@@ -22,6 +24,8 @@ class CustomTextField extends StatefulWidget {
     this.icon,
     this.validator,
     this.prefix,
+    this.suffix,
+    this.autofillHints,
   });
 
   @override
@@ -50,6 +54,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           obscureText: _obscure,
           keyboardType: widget.keyboardType,
           validator: widget.validator,
+          autofillHints: widget.autofillHints,
           style: const TextStyle(fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: widget.hint,
@@ -68,7 +73,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   )
-                : null,
+                : widget.suffix,
           ),
         ),
       ],

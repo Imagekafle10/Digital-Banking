@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../services/api_client.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
-import '../dashboard/dashboard_screen.dart';
+import '../home/root_shell.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -39,8 +40,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             password: _passwordController.text,
           );
       if (!mounted) return;
+      TextInput.finishAutofillContext();
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        MaterialPageRoute(builder: (_) => const RootShell()),
         (route) => false,
       );
     } catch (e) {
@@ -87,31 +89,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 18),
-                CustomTextField(
-                  label: 'Email',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  icon: Icons.mail_outline_rounded,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Enter your email';
-                    }
-                    if (!value.contains('@')) return 'Enter a valid email';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 18),
-                CustomTextField(
-                  label: 'Password',
-                  controller: _passwordController,
-                  obscureText: true,
-                  icon: Icons.lock_outline_rounded,
-                  validator: (value) {
-                    if (value == null || value.length < 8) {
-                      return 'At least 8 characters';
-                    }
-                    return null;
-                  },
+                AutofillGroup(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomTextField(
+                        label: 'Email',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        icon: Icons.mail_outline_rounded,
+                        autofillHints: const [
+                          AutofillHints.newUsername,
+                          AutofillHints.email,
+                        ],
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Enter your email';
+                          }
+                          if (!value.contains('@')) return 'Enter a valid email';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 18),
+                      CustomTextField(
+                        label: 'Password',
+                        controller: _passwordController,
+                        obscureText: true,
+                        icon: Icons.lock_outline_rounded,
+                        autofillHints: const [AutofillHints.newPassword],
+                        validator: (value) {
+                          if (value == null || value.length < 8) {
+                            return 'At least 8 characters';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 32),
                 CustomButton(

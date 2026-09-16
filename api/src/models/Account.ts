@@ -9,17 +9,17 @@ class Account {
   static async findByUserId(userId: string): Promise<IAccount | null> {
     const [rows] = await pool.query<AccountRow[]>(
       "SELECT * FROM accounts WHERE userId = ? LIMIT 1",
-      [userId]
+      [userId],
     );
     return rows[0] ?? null;
   }
 
   static async findByAccountNumber(
-    accountNumber: string
+    accountNumber: string,
   ): Promise<IAccount | null> {
     const [rows] = await pool.query<AccountRow[]>(
       "SELECT * FROM accounts WHERE accountNumber = ? LIMIT 1",
-      [accountNumber]
+      [accountNumber],
     );
     return rows[0] ?? null;
   }
@@ -27,7 +27,7 @@ class Account {
   static async findById(id: string): Promise<IAccount | null> {
     const [rows] = await pool.query<AccountRow[]>(
       "SELECT * FROM accounts WHERE id = ? LIMIT 1",
-      [id]
+      [id],
     );
     return rows[0] ?? null;
   }
@@ -37,22 +37,22 @@ class Account {
   // until the surrounding transaction commits or rolls back.
   static async findByIdForUpdate(
     id: string,
-    connection: PoolConnection
+    connection: PoolConnection,
   ): Promise<IAccount | null> {
     const [rows] = await connection.query<AccountRow[]>(
       "SELECT * FROM accounts WHERE id = ? FOR UPDATE",
-      [id]
+      [id],
     );
     return rows[0] ?? null;
   }
 
   static async findByAccountNumberForUpdate(
     accountNumber: string,
-    connection: PoolConnection
+    connection: PoolConnection,
   ): Promise<IAccount | null> {
     const [rows] = await connection.query<AccountRow[]>(
       "SELECT * FROM accounts WHERE accountNumber = ? FOR UPDATE",
-      [accountNumber]
+      [accountNumber],
     );
     return rows[0] ?? null;
   }
@@ -67,7 +67,7 @@ class Account {
     await pool.query<ResultSetHeader>(
       `INSERT INTO accounts (id, userId, accountNumber, accountType, balance, currency, status)
        VALUES (?, ?, ?, ?, 0, ?, 'active')`,
-      [id, data.userId, data.accountNumber, data.accountType, data.currency]
+      [id, data.userId, data.accountNumber, data.accountType, data.currency],
     );
     return (await Account.findById(id)) as IAccount;
   }
@@ -75,7 +75,7 @@ class Account {
   static async updateBalance(
     id: string,
     newBalance: number,
-    connection: PoolConnection
+    connection: PoolConnection,
   ): Promise<void> {
     await connection.query("UPDATE accounts SET balance = ? WHERE id = ?", [
       newBalance,
