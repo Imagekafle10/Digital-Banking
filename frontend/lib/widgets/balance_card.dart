@@ -1,0 +1,105 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../core/theme/app_theme.dart';
+import '../models/account.dart';
+
+class BalanceCard extends StatelessWidget {
+  final BankAccount account;
+
+  const BalanceCard({super.key, required this.account});
+
+  @override
+  Widget build(BuildContext context) {
+    final format = NumberFormat.currency(
+      symbol: '${account.currency} ',
+      decimalDigits: 2,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
+      decoration: BoxDecoration(
+        gradient: AppColors.heroGradient,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.35),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                account.accountTypeLabel,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5,
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  account.status.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            format.format(account.balance),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 33,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 22),
+          Row(
+            children: [
+              const Icon(Icons.credit_card, color: Colors.white70, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                _formatAccountNumber(account.accountNumber),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.5,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatAccountNumber(String number) {
+    final buffer = StringBuffer();
+    for (var i = 0; i < number.length; i++) {
+      buffer.write(number[i]);
+      if ((i + 1) % 4 == 0 && i + 1 != number.length) buffer.write('  ');
+    }
+    return buffer.toString();
+  }
+}
