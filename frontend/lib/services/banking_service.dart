@@ -107,6 +107,26 @@ class BankingService {
     );
   }
 
+  /// Looks up an account by its account number so the sender can see and
+  /// verify the recipient's name before confirming a transfer. Returns
+  /// null if no account exists with that number.
+  Future<AccountLookupResult?> lookupAccountByNumber(
+    String accountNumber,
+  ) async {
+    try {
+      final response = await _client.dio.get(
+        ApiConstants.accountLookup(accountNumber),
+      );
+      return AccountLookupResult.fromJson(
+        response.data['data'] as Map<String, dynamic>,
+      );
+    } on Object catch (e) {
+      final status = _statusCodeOf(e);
+      if (status == 404) return null;
+      rethrow;
+    }
+  }
+
   int? _statusCodeOf(Object e) {
     try {
       return (e as dynamic).response?.statusCode as int?;

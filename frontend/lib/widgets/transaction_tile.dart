@@ -121,7 +121,7 @@ class TransactionTile extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 14.5,
-              color: isCredit ? AppColors.success : AppColors.textPrimary,
+              color: isCredit ? AppColors.success : AppColors.danger,
             ),
           ),
         ],

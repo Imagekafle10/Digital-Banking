@@ -10,10 +10,15 @@ class BalanceCard extends StatelessWidget {
   /// Optional holder name shown under the account type.
   final String? accountName;
 
+  /// Optional callback for the small QR icon shown at the top of the card.
+  /// When null, the icon is not shown.
+  final VoidCallback? onQrTap;
+
   const BalanceCard({
     super.key,
     required this.account,
     this.accountName,
+    this.onQrTap,
   });
 
   static final Map<String, NumberFormat> _formatCache = {};
@@ -61,22 +66,45 @@ class BalanceCard extends StatelessWidget {
                   fontSize: 13.5,
                 ),
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  account.status.toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      account.status.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
-                ),
+                  if (onQrTap != null) ...[
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: onQrTap,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Icon(
+                          Icons.qr_code_2_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),

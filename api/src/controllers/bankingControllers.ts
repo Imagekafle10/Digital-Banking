@@ -44,6 +44,25 @@ const getMyAccount = async (
   }
 };
 
+// Lets the sender verify who they're sending to before confirming a
+// transfer - returns just { accountNumber, name }, nothing sensitive.
+const lookupAccount = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { accountNumber } = req.params;
+    const result = await bankingService.lookupAccountByNumber(accountNumber);
+    if (!result) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+    return res.status(200).json({ data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const deposit = async (
   req: AuthRequest,
   res: Response,
@@ -130,6 +149,7 @@ const getTransactionHistory = async (
 export default {
   createAccount,
   getMyAccount,
+  lookupAccount,
   deposit,
   withdraw,
   transfer,
