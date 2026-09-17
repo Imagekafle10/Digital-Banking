@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Central place for every backend URL the app talks to.
@@ -7,6 +9,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 class ApiConstants {
   ApiConstants._();
 
+  /// Your PC's LAN IP (from `ipconfig` / `ifconfig`) - used when a real
+  /// phone or an Android emulator needs to reach the backend running on
+  /// this machine. Update this if your PC's IP changes (e.g. new WiFi).
+  static const String _lanIp = '192.168.18.201';
+
   static String get _host {
     if (kIsWeb) {
       // Reuse whatever host the page itself was loaded from - so
@@ -14,7 +21,24 @@ class ApiConstants {
       // 192.168.18.201:8888 on your phone talks to 192.168.18.201:5000.
       return Uri.base.host;
     }
-    return '192.168.18.201';
+    if (Platform.isAndroid) {
+      // 10.0.2.2 is the Android emulator's special alias for the host
+      // machine's localhost. A real device can't reach 127.0.0.1 or
+      // 10.0.2.2 (those point at the phone/emulator itself), so it
+      // needs the PC's actual LAN IP instead. If you're on a real
+      // device, set isPhysicalDevice to true below.
+      const isPhysicalDevice = true;
+      return isPhysicalDevice ? _lanIp : '10.0.2.2';
+    }
+    if (Platform.isIOS) {
+      // iOS simulator can reach the host machine via localhost; a real
+      // iPhone needs the PC's LAN IP, same as a real Android device.
+      const isPhysicalDevice = true;
+      return isPhysicalDevice ? _lanIp : '127.0.0.1';
+    }
+    // Windows/macOS/Linux desktop and the Node backend are on the same
+    // machine here, so talk to it over loopback.
+    return '127.0.0.1';
   }
 
   /// Matches the backend's default PORT (see backend/.env / src/config/index.ts).

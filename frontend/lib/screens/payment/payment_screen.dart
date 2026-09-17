@@ -13,7 +13,18 @@ import 'payment_webview_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final BankAccount account;
-  const PaymentScreen({super.key, required this.account});
+
+  /// Lets this screen be reused for different entry points (e.g. "Load
+  /// Wallet" vs "Payments") without duplicating the eSewa/Khalti flow.
+  final String title;
+  final String ctaLabel;
+
+  const PaymentScreen({
+    super.key,
+    required this.account,
+    this.title = 'Pay',
+    this.ctaLabel = 'Continue to pay',
+  });
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -91,7 +102,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pay')),
+      appBar: AppBar(title: Text(widget.title)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
@@ -175,12 +186,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 CustomTextField(
                   label: 'Amount (${widget.account.currency})',
                   controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   icon: Icons.payments_outlined,
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Enter an amount';
+                    if (value == null || value.trim().isEmpty)
+                      return 'Enter an amount';
                     final parsed = double.tryParse(value);
-                    if (parsed == null || parsed <= 0) return 'Enter a valid positive amount';
+                    if (parsed == null || parsed <= 0)
+                      return 'Enter a valid positive amount';
                     return null;
                   },
                 ),
@@ -192,7 +206,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 const SizedBox(height: 32),
                 CustomButton(
-                  label: 'Continue to pay',
+                  label: widget.ctaLabel,
                   icon: Icons.lock_outline_rounded,
                   isLoading: _isLoading,
                   onPressed: _submit,
@@ -231,7 +245,8 @@ class _PaymentResultDialog extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Reference: ${result.providerReference}',
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+            style:
+                const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
             textAlign: TextAlign.center,
           ),
         ],
