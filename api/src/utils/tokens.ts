@@ -19,11 +19,15 @@ export interface RefreshTokenPayload {
 
 // Short-lived - sent in the JSON response body, kept in memory on the client.
 export const generateAccessToken = (payload: AccessTokenPayload): string =>
-  jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_ACCESS_EXPIRES });
+  jwt.sign(payload, JWT_SECRET, {
+    expiresIn: JWT_ACCESS_EXPIRES as jwt.SignOptions["expiresIn"],
+  });
 
 // Long-lived - sent only as an httpOnly cookie, never readable by client JS.
 export const generateRefreshToken = (payload: RefreshTokenPayload): string =>
-  jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES });
+  jwt.sign(payload, JWT_REFRESH_SECRET, {
+    expiresIn: JWT_REFRESH_EXPIRES as jwt.SignOptions["expiresIn"],
+  });
 
 export const verifyAccessToken = (token: string): AccessTokenPayload =>
   jwt.verify(token, JWT_SECRET) as AccessTokenPayload;
