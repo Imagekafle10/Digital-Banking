@@ -15,6 +15,8 @@ import '../core/constants/api_constants.dart';
 /// - attaches the short-lived access token as a Bearer header.
 /// - transparently refreshes the access token once on a 401 and retries
 ///   the original request, matching the backend's /auth/refresh contract.
+/// - tolerates Render free-tier cold starts (server can take 30-60s to
+///   wake from idle) via longer timeouts and an optional warm-up ping.
 class ApiClient {
   ApiClient._internal();
   static final ApiClient instance = ApiClient._internal();
@@ -26,6 +28,11 @@ class ApiClient {
 
   static const _accessTokenKey = 'nepal_bank_access_token';
 
+  // Render free-tier services spin down after ~15 min idle; the first
+  // request after that can take 30-60s while the instance boots back up.
+  static const _connectTimeout = Duration(seconds: 60);
+  static const _receiveTimeout = Duration(seconds: 60);
+
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
@@ -33,8 +40,8 @@ class ApiClient {
     dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: _connectTimeout,
+        receiveTimeout: _receiveTimeout,
         headers: {'Content-Type': 'application/json'},
         extra: {'withCredentials': true},
       ),
@@ -104,9 +111,30 @@ class ApiClient {
 
   bool get hasAccessToken => _accessToken != null;
 
+  /// Fire-and-forget ping to wake a sleeping Render instance as early as
+  /// possible (e.g. from a splash screen), so the cold-start delay happens
+  /// before the user's first real action instead of during it. Safe to
+  /// call even if the server is already warm - it just resolves quickly.
+  Future<void> warmUpServer() async {
+    try {
+      await dio.get(
+        '/',
+        options: Options(
+          sendTimeout: _connectTimeout,
+          receiveTimeout: _receiveTimeout,
+        ),
+      );
+    } catch (_) {
+      // Ignore - this is only meant to wake the server, not a real request.
+      // A genuine outage will still surface on the next actual API call.
+    }
+  }
+
   /// Tries a silent refresh - used on app launch to figure out whether the
   /// user already has a valid session (refresh cookie) without asking them
-  /// to log in again.
+  /// to log in again. May take up to ~60s on a cold Render instance, so
+  /// callers should show a "waking up the server..." state rather than a
+  /// bare spinner while this resolves.
   Future<bool> trySilentRefresh() async {
     try {
       await _refreshAccessToken();
@@ -132,8 +160,8 @@ String extractErrorMessage(Object error) {
     }
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.connectionError) {
-      return "Couldn't reach the server. Check your connection and the "
-          'API base URL in api_constants.dart.';
+      return 'Server is taking longer than usual to respond (it may be '
+          'waking up). Please try again in a moment.';
     }
   }
   return 'Something went wrong. Please try again.';

@@ -9,6 +9,16 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 class ApiConstants {
   ApiConstants._();
 
+  /// Flip this to switch the whole app between your local backend and the
+  /// live Render deployment. Set to `true` once you're testing against
+  /// real data / before a release build; keep `false` for day-to-day local
+  /// development against `npm run dev` on your PC.
+  static const bool useProduction = false;
+
+  /// Your live Render deployment.
+  static const String _productionUrl =
+      'https://digital-banking-7mgs.onrender.com';
+
   /// Your PC's LAN IP (from `ipconfig` / `ifconfig`) - used when a real
   /// phone or an Android emulator needs to reach the backend running on
   /// this machine. Update this if your PC's IP changes (e.g. new WiFi).
@@ -44,7 +54,8 @@ class ApiConstants {
   /// Matches the backend's default PORT (see backend/.env / src/config/index.ts).
   static const int port = 5000;
 
-  static String get baseUrl => 'http://$_host:$port/api';
+  static String get baseUrl =>
+      useProduction ? '$_productionUrl/api' : 'http://$_host:$port/api';
 
   // Auth
   static const String register = '/auth/register';
