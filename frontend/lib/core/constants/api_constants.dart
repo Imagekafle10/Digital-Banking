@@ -38,6 +38,12 @@ class ApiConstants {
   static String transactions(String accountId) =>
       '/banking/transactions/$accountId';
 
+  // Looks up an account by number, returning basic public info (holder's
+  // name) so the sender can verify the recipient before transferring -
+  // adjust this path to match your backend's actual route.
+  static String accountLookup(String accountNumber) =>
+      '/banking/account/lookup/$accountNumber';
+
   // Payment
   static const String paymentInitiate = '/payment/initiate';
   static const String khaltiReturn = '/payment/khalti/return';

@@ -10,6 +10,7 @@ import '../../widgets/transaction_tile.dart';
 import '../account/create_account_screen.dart';
 import '../auth/login_screen.dart';
 import '../banking/deposit_screen.dart';
+import '../banking/my_qr_screen.dart';
 import '../banking/transactions_screen.dart';
 import '../banking/transfer_screen.dart';
 import '../banking/withdraw_screen.dart';
@@ -85,6 +86,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }),
       _DashItem('Digital Services', Icons.grid_view_rounded, AppColors.primary,
           () => _soon('Digital Services')),
+      _DashItem('My QR', Icons.qr_code_2_rounded, const Color(0xFF1AAE6F), () {
+        _needAccount(
+          account,
+          () =>
+              _open(MyQrScreen(account: account!, accountHolderName: userName)),
+        );
+      }),
       _DashItem('Payments', Icons.payments_outlined, const Color(0xFF1AAE6F),
           () {
         _needAccount(account, () => _open(PaymentScreen(account: account!)));
@@ -175,7 +183,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               else if (account == null)
                 _NoAccount(onCreate: () => _open(const CreateAccountScreen()))
               else
-                BalanceCard(account: account, accountName: userName),
+                BalanceCard(
+                  account: account,
+                  accountName: userName,
+                  onQrTap: () => _open(
+                    MyQrScreen(account: account, accountHolderName: userName),
+                  ),
+                ),
               const SizedBox(height: 18),
               Container(
                 width: double.infinity,

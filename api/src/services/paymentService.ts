@@ -9,10 +9,13 @@ import {
   buildEsewaFormPayload,
   checkEsewaStatus,
 } from "../providers/esewaProvider";
-import { InitiatePaymentInput, InitiatePaymentResult } from "../types/payment.types";
+import {
+  InitiatePaymentInput,
+  InitiatePaymentResult,
+} from "../types/payment.types";
 
 const initiatePayment = async (
-  input: InitiatePaymentInput
+  input: InitiatePaymentInput,
 ): Promise<InitiatePaymentResult> => {
   try {
     if (input.provider === "khalti") {
@@ -43,7 +46,7 @@ const initiatePayment = async (
     const transactionUuid = randomUUID();
     const { formAction, formFields } = buildEsewaFormPayload(
       input.amount,
-      transactionUuid
+      transactionUuid,
     );
 
     await Payment.createPayment({
@@ -80,7 +83,7 @@ const verifyPayment = async (providerReference: string) => {
     } else {
       const status = await checkEsewaStatus(
         Number(payment.amount),
-        providerReference
+        providerReference,
       );
       if (status.status !== "COMPLETE") {
         await Payment.updateStatus(payment.id, "pending");

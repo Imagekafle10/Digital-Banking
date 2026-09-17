@@ -44,3 +44,20 @@ class BankAccount {
     }
   }
 }
+
+/// Minimal result of looking up an account by its account number, used to
+/// verify the recipient (show their name) before sending money - the same
+/// "name verification" step real banking / wallet apps show.
+class AccountLookupResult {
+  final String accountNumber;
+  final String name;
+
+  AccountLookupResult({required this.accountNumber, required this.name});
+
+  factory AccountLookupResult.fromJson(Map<String, dynamic> json) {
+    return AccountLookupResult(
+      accountNumber: json['accountNumber'] as String,
+      name: (json['name'] ?? json['fullName'] ?? '').toString(),
+    );
+  }
+}

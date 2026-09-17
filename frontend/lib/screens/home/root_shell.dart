@@ -9,10 +9,13 @@ import '../../providers/auth_provider.dart';
 import '../../providers/favourite_provider.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/balance_card.dart';
+import '../banking/my_qr_screen.dart';
 import '../banking/qr_scan_screen.dart';
 import '../banking/transactions_screen.dart';
 import '../banking/transfer_screen.dart';
 import '../dashboard/dashboard_screen.dart';
+
+enum _QrAction { myQr, scan }
 
 class RootShell extends StatefulWidget {
   const RootShell({super.key});
@@ -53,6 +56,63 @@ class _RootShellState extends State<RootShell> {
       _goToHomeTab();
       return;
     }
+
+    // Slide up a sheet so the user picks which individual QR action they
+    // want: show their own QR to receive money, or scan someone else's.
+    final action = await showModalBottomSheet<_QrAction>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.qr_code_2_rounded,
+                    color: AppColors.primary),
+                title: const Text('My QR'),
+                subtitle: const Text('Show your QR to receive money'),
+                onTap: () => Navigator.of(ctx).pop(_QrAction.myQr),
+              ),
+              ListTile(
+                leading: const Icon(Icons.qr_code_scanner_rounded,
+                    color: AppColors.primary),
+                title: const Text('Scan QR'),
+                subtitle: const Text("Scan someone else's QR to pay"),
+                onTap: () => Navigator.of(ctx).pop(_QrAction.scan),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (action == null || !mounted) return;
+
+    if (action == _QrAction.myQr) {
+      final userName = context.read<AuthProvider>().user?.fullName;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              MyQrScreen(account: account, accountHolderName: userName),
+        ),
+      );
+      return;
+    }
+
     final scanned = await Navigator.of(context).push<String?>(
       MaterialPageRoute(builder: (_) => const QrScanScreen()),
     );
@@ -248,6 +308,14 @@ class _SendTab extends StatelessWidget {
             BalanceCard(
               account: account,
               accountName: userName,
+              onQrTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => MyQrScreen(
+                    account: account,
+                    accountHolderName: userName,
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             const Icon(Icons.send_rounded, color: AppColors.primary, size: 40),

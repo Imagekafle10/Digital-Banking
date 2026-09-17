@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 /// Scans a recipient's account QR code and pops with the decoded
@@ -21,7 +23,9 @@ class _QrScanScreenState extends State<QrScanScreen> {
     formats: const [BarcodeFormat.qrCode],
     detectionSpeed: DetectionSpeed.noDuplicates,
   );
+  final _imagePicker = ImagePicker();
   bool _handled = false;
+  bool _isProcessingImage = false;
 
   @override
   void dispose() {
@@ -59,6 +63,47 @@ class _QrScanScreenState extends State<QrScanScreen> {
     Navigator.of(context).pop(accountNumber);
   }
 
+  Future<void> _pickFromGallery() async {
+    if (_handled || _isProcessingImage) return;
+
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Scanning an uploaded photo isn't supported on web yet. "
+            "Please use the camera, or enter the account number manually.",
+          ),
+        ),
+      );
+      return;
+    }
+
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (image == null || !mounted) return;
+
+    setState(() => _isProcessingImage = true);
+    try {
+      // In mobile_scanner 4.0.1, analyzeImage returns a bool indicating
+      // whether a barcode was found. The decoded barcode itself arrives
+      // through the same onDetect callback used for live camera scanning,
+      // which will pop this screen with the account number.
+      final bool found = await _controller.analyzeImage(image.path);
+      if (!mounted) return;
+
+      if (!found) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("No QR code found in that photo. Try another."),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessingImage = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,6 +114,11 @@ class _QrScanScreenState extends State<QrScanScreen> {
         elevation: 0,
         title: const Text('Scan account QR'),
         actions: [
+          IconButton(
+            tooltip: 'Upload from gallery',
+            icon: const Icon(Icons.photo_library_outlined),
+            onPressed: _isProcessingImage ? null : _pickFromGallery,
+          ),
           IconButton(
             tooltip: 'Toggle flash',
             icon: ValueListenableBuilder<TorchState>(
@@ -94,6 +144,13 @@ class _QrScanScreenState extends State<QrScanScreen> {
                 _ScannerError(error: error),
           ),
           const IgnorePointer(child: _ScanFrame()),
+          if (_isProcessingImage)
+            const ColoredBox(
+              color: Colors.black54,
+              child: Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
           Positioned(
             left: 24,
             right: 24,

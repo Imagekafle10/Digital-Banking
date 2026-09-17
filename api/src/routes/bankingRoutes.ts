@@ -17,6 +17,11 @@ router.post(
   bankingControllers.createAccount
 );
 router.get("/account/me", auth, bankingControllers.getMyAccount);
+router.get(
+  "/account/lookup/:accountNumber",
+  auth,
+  bankingControllers.lookupAccount
+);
 
 router.post("/deposit", auth, depositValidation, bankingControllers.deposit);
 router.post(

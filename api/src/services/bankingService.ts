@@ -58,6 +58,23 @@ const getAccountByNumber = async (accountNumber: string) => {
   }
 };
 
+// Public-safe lookup used to verify a recipient before a transfer - only
+// exposes the account number and the holder's name, never balance/id/etc.
+const lookupAccountByNumber = async (accountNumber: string) => {
+  try {
+    const account = await Account.findByAccountNumber(accountNumber);
+    if (!account) return null;
+
+    const user = await User.findById(account.userId);
+    return {
+      accountNumber: account.accountNumber,
+      name: user?.fullName ?? "",
+    };
+  } catch (error) {
+    throw new Error(error as string);
+  }
+};
+
 const deposit = async ({ accountId, amount, remarks }: DepositInput) => {
   if (amount <= 0) throw new Error("Deposit amount must be greater than zero");
 
@@ -237,6 +254,7 @@ export default {
   createAccount,
   getAccountByUserId,
   getAccountByNumber,
+  lookupAccountByNumber,
   deposit,
   withdraw,
   transfer,
