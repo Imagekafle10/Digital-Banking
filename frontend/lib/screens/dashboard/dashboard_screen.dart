@@ -9,7 +9,6 @@ import '../../widgets/balance_card.dart';
 import '../../widgets/transaction_tile.dart';
 import '../account/create_account_screen.dart';
 import '../auth/login_screen.dart';
-import '../banking/deposit_screen.dart';
 import '../banking/my_qr_screen.dart';
 import '../banking/transactions_screen.dart';
 import '../banking/transfer_screen.dart';
@@ -99,7 +98,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }),
       _DashItem('Load Wallet', Icons.add_box_outlined, const Color(0xFF1AAE6F),
           () {
-        _needAccount(account, () => _open(DepositScreen(account: account!)));
+        _needAccount(
+          account,
+          () => _open(PaymentScreen(
+            account: account!,
+            title: 'Load Wallet',
+            ctaLabel: 'Continue to load wallet',
+          )),
+        );
       }),
       _DashItem('Mobile Topup', Icons.phone_android_rounded, AppColors.primary,
           () => _soon('Mobile Topup')),
