@@ -9,6 +9,7 @@ class AccountProvider extends ChangeNotifier {
 
   BankAccount? account;
   List<BankTransaction> recentTransactions = [];
+  List<BankTransaction> flowTransactions = [];
   bool isLoading = false;
   String? error;
 
@@ -21,9 +22,10 @@ class AccountProvider extends ChangeNotifier {
       if (account != null) {
         final page = await _bankingService.getTransactionHistory(
           accountId: account!.id,
-          limit: 5,
+          limit: 500,
         );
-        recentTransactions = page.rows;
+        flowTransactions = page.rows;
+        recentTransactions = page.rows.take(5).toList();
       }
     } catch (e) {
       error = 'Could not load your account.';
@@ -59,12 +61,14 @@ class AccountProvider extends ChangeNotifier {
             status: account!.status,
           );
     recentTransactions = [transaction, ...recentTransactions].take(5).toList();
+    flowTransactions = [transaction, ...flowTransactions].take(30).toList();
     notifyListeners();
   }
 
   void clear() {
     account = null;
     recentTransactions = [];
+    flowTransactions = [];
     notifyListeners();
   }
 }

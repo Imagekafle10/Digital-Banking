@@ -22,7 +22,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _bootstrap() async {
     final auth = context.read<AuthProvider>();
-    await auth.bootstrap();
+    // Run the real session check and a minimum splash duration in
+    // parallel, so the splash is always visible for at least this long -
+    // otherwise a fast local backend can make it flash by in a few ms.
+    final results = await Future.wait([
+      auth.bootstrap(),
+      Future.delayed(const Duration(milliseconds: 1200)),
+    ]);
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
@@ -35,32 +41,37 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: DecoratedBox(
-        decoration: BoxDecoration(gradient: AppColors.heroGradient),
+        decoration: const BoxDecoration(gradient: AppColors.heroGradient),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.account_balance_rounded,
-                color: Colors.white,
-                size: 64,
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Image Bank',
-                style: TextStyle(
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
                   color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.contain,
                 ),
               ),
-              SizedBox(height: 28),
-              SizedBox(
-                height: 26,
-                width: 26,
+              const SizedBox(height: 32),
+              const SizedBox(
+                height: 15,
+                width: 15,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.6,
                   valueColor: AlwaysStoppedAnimation(Colors.white),

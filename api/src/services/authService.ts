@@ -18,6 +18,9 @@ const toSafeUser = (user: IUser): SafeUser => ({
   id: user.id,
   fullName: user.fullName,
   email: user.email,
+  phone: user.phone,
+  dateOfBirth: user.dateOfBirth,
+  gender: user.gender,
   role: user.role,
   status: user.status,
   createdAt: user.createdAt,
@@ -32,12 +35,26 @@ const issueTokens = async (user: Pick<IUser, "id" | "role">) => {
   return { accessToken, refreshToken };
 };
 
-const register = async ({ fullName, email, password }: RegisterInput) => {
+const register = async ({
+  fullName,
+  email,
+  password,
+  phone,
+  dateOfBirth,
+  gender,
+}: RegisterInput) => {
   const existing = await User.findByEmail(email);
   if (existing) throw new AppError("Email is already registered", 409);
 
   const passwordHash = await hashPassword(password);
-  const user = await User.createUser({ fullName, email, passwordHash });
+  const user = await User.createUser({
+    fullName,
+    email,
+    passwordHash,
+    phone,
+    dateOfBirth,
+    gender,
+  });
   const tokens = await issueTokens(user);
 
   return { user: toSafeUser(user), ...tokens };

@@ -19,15 +19,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _dobController = TextEditingController();
+
+  DateTime? _dob;
+  String? _gender;
   bool _isLoading = false;
+
+  static const _genders = ['Male', 'Female', 'Other'];
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _dobController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDob() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(now.year - 18, now.month, now.day),
+      firstDate: DateTime(now.year - 100),
+      lastDate: DateTime(now.year - 13, now.month, now.day),
+    );
+    if (picked == null) return;
+    setState(() {
+      _dob = picked;
+      _dobController.text =
+          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+    });
   }
 
   Future<void> _submit() async {
@@ -38,6 +65,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             fullName: _nameController.text.trim(),
             email: _emailController.text.trim(),
             password: _passwordController.text,
+            phone: _phoneController.text.trim(),
+            dateOfBirth: _dob!,
+            gender: _gender!,
           );
       if (!mounted) return;
       TextInput.finishAutofillContext();
@@ -67,6 +97,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 56,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 20),
                 Text(
                   'Join in a minute',
                   style: Theme.of(context).textTheme.headlineMedium,
@@ -106,7 +142,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           if (value == null || value.trim().isEmpty) {
                             return 'Enter your email';
                           }
-                          if (!value.contains('@')) return 'Enter a valid email';
+                          if (!value.contains('@'))
+                            return 'Enter a valid email';
                           return null;
                         },
                       ),
@@ -124,8 +161,73 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           return null;
                         },
                       ),
+                      const SizedBox(height: 18),
+                      CustomTextField(
+                        label: 'Confirm password',
+                        controller: _confirmPasswordController,
+                        obscureText: true,
+                        icon: Icons.lock_outline_rounded,
+                        autofillHints: const [AutofillHints.newPassword],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Confirm your password';
+                          }
+                          if (value != _passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+                          return null;
+                        },
+                      ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 18),
+                GestureDetector(
+                  onTap: _pickDob,
+                  child: AbsorbPointer(
+                    child: CustomTextField(
+                      label: 'Date of birth',
+                      controller: _dobController,
+                      icon: Icons.cake_outlined,
+                      validator: (_) {
+                        if (_dob == null) return 'Select your date of birth';
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                DropdownButtonFormField<String>(
+                  value: _gender,
+                  decoration: const InputDecoration(
+                    labelText: 'Gender',
+                    prefixIcon: Icon(Icons.people_alt_outlined),
+                  ),
+                  items: _genders
+                      .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                      .toList(),
+                  onChanged: (value) => setState(() => _gender = value),
+                  validator: (value) {
+                    if (value == null) return 'Select your gender';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 18),
+                CustomTextField(
+                  label: 'Phone number',
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  icon: Icons.phone_outlined,
+                  autofillHints: const [AutofillHints.telephoneNumber],
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Enter your phone number';
+                    }
+                    if (value.trim().length < 7) {
+                      return 'Enter a valid phone number';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 32),
                 CustomButton(

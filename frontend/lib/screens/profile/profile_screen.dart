@@ -65,6 +65,27 @@ class ProfileScreen extends StatelessWidget {
                   _ProfileRow(label: 'Role', value: user?.role ?? '-'),
                   const Divider(height: 1),
                   _ProfileRow(label: 'Status', value: user?.status ?? '-'),
+                  // These three are nullable on the model - older accounts
+                  // created before phone/dateOfBirth/gender existed will
+                  // have null here, so the row is simply omitted rather
+                  // than showing "null" or crashing.
+                  if (user?.phone != null) ...[
+                    const Divider(height: 1),
+                    _ProfileRow(label: 'Phone', value: user!.phone!),
+                  ],
+                  if (user?.gender != null) ...[
+                    const Divider(height: 1),
+                    _ProfileRow(label: 'Gender', value: user!.gender!),
+                  ],
+                  if (user?.dateOfBirth != null) ...[
+                    const Divider(height: 1),
+                    _ProfileRow(
+                      label: 'Date of birth',
+                      value: '${user!.dateOfBirth!.year}-'
+                          '${user.dateOfBirth!.month.toString().padLeft(2, '0')}-'
+                          '${user.dateOfBirth!.day.toString().padLeft(2, '0')}',
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -99,7 +120,7 @@ class _ProfileRow extends StatelessWidget {
         children: [
           Text(label, style: const TextStyle(color: AppColors.textSecondary)),
           Text(
-            value[0].toUpperCase() + value.substring(1),
+            value.isEmpty ? value : value[0].toUpperCase() + value.substring(1),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ],
