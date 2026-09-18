@@ -13,7 +13,7 @@ class ApiConstants {
   /// live Render deployment. Set to `true` once you're testing against
   /// real data / before a release build; keep `false` for day-to-day local
   /// development against `npm run dev` on your PC.
-  static const bool useProduction = false;
+  static const bool useProduction = true;
 
   /// Your live Render deployment.
   static const String _productionUrl =
