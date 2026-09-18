@@ -11,11 +11,14 @@ import adminRoutes from "./routes/adminRoutes";
 const app = express();
 
 const allowedOrigins = [
-  "http://localhost:3000", // React admin (Vite)
+  "http://localhost:3000",
   "http://localhost:8888",
   "http://192.168.18.201:8888",
   "http://127.0.0.1:3000",
   "http://127.0.0.1:8888",
+
+  // Production Admin
+  "https://digital-banking-admin.vercel.app",
 ];
 
 app.use(
