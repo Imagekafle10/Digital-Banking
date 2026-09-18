@@ -6,10 +6,17 @@ import authRoutes from "./routes/authRoutes";
 import bankingRoutes from "./routes/bankingRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import { REACT_APP_URL, NODE_ENV } from "./config";
+import adminRoutes from "./routes/adminRoutes";
 
 const app = express();
 
-const allowedOrigins = ["http://localhost:8888", "http://192.168.18.201:8888"];
+const allowedOrigins = [
+  "http://localhost:3000", // React admin (Vite)
+  "http://localhost:8888",
+  "http://192.168.18.201:8888",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:8888",
+];
 
 app.use(
   cors({
@@ -27,6 +34,8 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
 
+// after your other routes:
+app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/banking", bankingRoutes);
 app.use("/api/payment", paymentRoutes);

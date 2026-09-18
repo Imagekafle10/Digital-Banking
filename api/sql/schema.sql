@@ -63,3 +63,32 @@ ALTER TABLE users
   ADD COLUMN phone VARCHAR(20) NULL AFTER email,
   ADD COLUMN dateOfBirth DATE NULL AFTER phone,
   ADD COLUMN gender ENUM('Male', 'Female', 'Other') NULL AFTER dateOfBirth;
+
+
+  INSERT INTO users (
+  id,
+  fullName,
+  email,
+  password,
+  phone,
+  dateOfBirth,
+  gender,
+  role,
+  status,
+  refreshTokenHash,
+  createdAt,
+  updatedAt
+) VALUES (
+  UUID(),
+  'Admin User',
+  'admin@bank.com',
+  'admin123',
+  '+9779800000001',
+  '1990-01-15',
+  'Male',
+  'admin',
+  'active',
+  NULL,
+  NOW(),
+  NOW()
+);
