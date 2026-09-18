@@ -66,7 +66,7 @@ export function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@bank.com"
+              placeholder="Email"
               required
               autoComplete="email"
             />
