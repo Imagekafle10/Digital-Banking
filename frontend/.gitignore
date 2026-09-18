@@ -1,23 +1,13 @@
-# Node
-node_modules/
-npm-debug.log*
-.env
-.env.*
-
-# Flutter
 .dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
 .packages
 build/
-.pub-cache/
-pubspec.lock
-
-# IDE
-.vscode/
-.idea/
+android/
+ios/
+web/
+linux/
+macos/
+windows/
+.flutter-plugins
+.flutter-plugins-dependencies
 *.iml
-
-# OS
-.DS_Store
-Thumbs.db
+.idea/
