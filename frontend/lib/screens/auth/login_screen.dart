@@ -185,9 +185,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     isLoading: _isLoading,
                     onPressed: _submit,
                   ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: TextButton(
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'New here?',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey[600],
+                                  ),
+                        ),
+                      ),
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
                       onPressed: _isLoading
                           ? null
                           : () => Navigator.of(context).push(
@@ -195,7 +213,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                   builder: (_) => const RegisterScreen(),
                                 ),
                               ),
-                      child: const Text("Don't have an account? Sign up"),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      child: const Text(
+                        'Create an account',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
                 ],

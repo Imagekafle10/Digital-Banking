@@ -14,7 +14,7 @@ const _navItems = [
   _NavItem(Icons.format_list_bulleted_rounded,
       Icons.format_list_bulleted_rounded, 'Activity'),
   _NavItem(Icons.send_outlined, Icons.send_rounded, 'Send'),
-  _NavItem(Icons.credit_card_outlined, Icons.credit_card_rounded, 'Cards'),
+  _NavItem(Icons.apps_outlined, Icons.apps_rounded, 'More'),
 ];
 
 class AppBottomNav extends StatelessWidget {

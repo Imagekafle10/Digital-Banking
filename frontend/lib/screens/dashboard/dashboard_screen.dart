@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
-import '../../models/account.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/account_flow_chart.dart';
 import '../../widgets/balance_card.dart';
+import '../../widgets/dashboard_menu.dart';
 import '../../widgets/transaction_tile.dart';
 import '../account/create_account_screen.dart';
+import '../account/personal_detail_screen.dart';
 import '../auth/login_screen.dart';
 import '../banking/my_qr_screen.dart';
 import '../banking/transactions_screen.dart';
-import '../banking/transfer_screen.dart';
-import '../banking/withdraw_screen.dart';
-import '../payment/payment_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -52,78 +51,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _needAccount(BankAccount? account, VoidCallback go) {
-    if (account == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Open an account first')),
-      );
-      return;
-    }
-    go();
-  }
-
   @override
   Widget build(BuildContext context) {
     final accountProvider = context.watch<AccountProvider>();
     final account = accountProvider.account;
     final userName = context.watch<AuthProvider>().user?.fullName;
-
-    final items = <_DashItem>[
-      _DashItem('My Accounts', Icons.account_balance_wallet_rounded,
-          const Color(0xFF1AAE6F), () {
-        if (account == null) {
-          _open(const CreateAccountScreen());
-        } else {
-          _soon('Account details');
-        }
-      }),
-      _DashItem('Cards', Icons.credit_card_rounded, const Color(0xFF1AAE6F),
-          () => _soon('Cards')),
-      _DashItem('Statement', Icons.description_outlined, AppColors.primary, () {
-        _needAccount(
-            account, () => _open(TransactionsScreen(account: account!)));
-      }),
-      _DashItem('Digital Services', Icons.grid_view_rounded, AppColors.primary,
-          () => _soon('Digital Services')),
-      _DashItem('My QR', Icons.qr_code_2_rounded, const Color(0xFF1AAE6F), () {
-        _needAccount(
-          account,
-          () =>
-              _open(MyQrScreen(account: account!, accountHolderName: userName)),
-        );
-      }),
-      _DashItem('Payments', Icons.payments_outlined, const Color(0xFF1AAE6F),
-          () {
-        _needAccount(account, () => _open(PaymentScreen(account: account!)));
-      }),
-      _DashItem('Load Wallet', Icons.add_box_outlined, const Color(0xFF1AAE6F),
-          () {
-        _needAccount(
-          account,
-          () => _open(PaymentScreen(
-            account: account!,
-            title: 'Load Wallet',
-            ctaLabel: 'Continue to load wallet',
-          )),
-        );
-      }),
-      _DashItem('Mobile Topup', Icons.phone_android_rounded, AppColors.primary,
-          () => _soon('Mobile Topup')),
-      _DashItem(
-          'Cardless Withdrawal', Icons.atm_rounded, const Color(0xFFE0473F),
-          () {
-        _needAccount(account, () => _open(WithdrawScreen(account: account!)));
-      }),
-      _DashItem('Send Money', Icons.send_rounded, const Color(0xFF1AAE6F), () {
-        _needAccount(account, () => _open(TransferScreen(account: account!)));
-      }),
-      _DashItem('Fixed Deposit', Icons.savings_outlined, AppColors.primary,
-          () => _soon('Fixed Deposit')),
-      _DashItem('Virtual Dollar', Icons.account_balance_rounded,
-          AppColors.primary, () => _soon('Virtual Dollar Card')),
-      _DashItem('Book Appointment', Icons.event_available_rounded,
-          const Color(0xFF1AAE6F), () => _soon('Book an Appointment')),
-    ];
+    final items =
+        buildDashboardMenuItems(context, account: account, userName: userName);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -190,12 +124,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _NoAccount(onCreate: () => _open(const CreateAccountScreen()))
               else
                 BalanceCard(
+                  key: ValueKey('balance-card-${account.id}'),
                   account: account,
                   accountName: userName,
+                  onTap: () => _open(
+                    PersonalDetailScreen(
+                        account: account, accountName: userName),
+                  ),
                   onQrTap: () => _open(
                     MyQrScreen(account: account, accountHolderName: userName),
                   ),
                 ),
+              if (account != null) ...[
+                const SizedBox(height: 18),
+                AccountFlowChart(
+                  transactions: accountProvider.flowTransactions,
+                ),
+              ],
               const SizedBox(height: 18),
               Container(
                 width: double.infinity,
@@ -207,26 +152,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: Column(
                   children: [
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        const cols = 4;
-                        final gap = 8.0;
-                        final tileW =
-                            (constraints.maxWidth - gap * (cols - 1)) / cols;
-
-                        return Wrap(
-                          spacing: gap,
-                          runSpacing: 16,
-                          children: [
-                            for (final item in items)
-                              SizedBox(
-                                width: tileW,
-                                child: _MenuButton(item: item),
-                              ),
-                          ],
-                        );
-                      },
-                    ),
+                    DashboardMenuGrid(items: items),
                     const SizedBox(height: 4),
                     Align(
                       alignment: Alignment.centerRight,
@@ -297,62 +223,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _DashItem {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-  _DashItem(this.label, this.icon, this.color, this.onTap);
-}
-
-class _MenuButton extends StatelessWidget {
-  final _DashItem item;
-  const _MenuButton({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: item.onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            height: 52,
-            width: 52,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F9FC),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Icon(item.icon, color: item.color, size: 24),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            item.label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-              height: 1.2,
-            ),
-          ),
-        ],
       ),
     );
   }

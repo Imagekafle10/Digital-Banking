@@ -9,11 +9,13 @@ import '../../providers/auth_provider.dart';
 import '../../providers/favourite_provider.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/balance_card.dart';
+import '../account/personal_detail_screen.dart';
 import '../banking/my_qr_screen.dart';
 import '../banking/qr_scan_screen.dart';
 import '../banking/transactions_screen.dart';
 import '../banking/transfer_screen.dart';
 import '../dashboard/dashboard_screen.dart';
+import 'more_screen.dart';
 
 enum _QrAction { myQr, scan }
 
@@ -152,11 +154,7 @@ class _RootShellState extends State<RootShell> {
               onOpenAccount: _goToHomeTab,
             )
           : _SendTab(account: account),
-      const _ComingSoonView(
-        icon: Icons.credit_card_rounded,
-        title: 'Cards',
-        message: 'Card management is coming soon.',
-      ),
+      const MoreScreen(),
     ];
 
     return Scaffold(
@@ -306,8 +304,17 @@ class _SendTab extends StatelessWidget {
           children: [
             // Your account (not "favourite")
             BalanceCard(
+              key: ValueKey('balance-card-${account.id}'),
               account: account,
               accountName: userName,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => PersonalDetailScreen(
+                    account: account,
+                    accountName: userName,
+                  ),
+                ),
+              ),
               onQrTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => MyQrScreen(
@@ -488,36 +495,6 @@ class _NeedsAccountView extends StatelessWidget {
                     onPressed: onOpenAccount, child: const Text('Go to Home')),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ComingSoonView extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String message;
-  const _ComingSoonView(
-      {required this.icon, required this.title, required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: AppColors.textSecondary, size: 48),
-              const SizedBox(height: 16),
-              Text(message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.textSecondary)),
-            ],
           ),
         ),
       ),
