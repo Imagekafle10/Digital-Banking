@@ -8,8 +8,8 @@ import { Button } from "../components/ui/Button";
 export function LoginPage() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("admin@bank.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,12 +34,18 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-600 text-white shadow-lg shadow-primary-600/30">
-            <Building2 className="h-7 w-7" />
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center overflow-hidden ">
+            <img
+              src="/logo.png"
+              alt="IMAGE BANK"
+              className="h-full w-full object-cover"
+            />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Banking Admin</h1>
+          <h1 className="text-2xl font-bold tracking-wide text-slate-900">
+            IMAGE BANK
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Sign in to manage your banking platform
+            Admin Panel · Since 2026
           </p>
         </div>
 
@@ -97,10 +103,6 @@ export function LoginPage() {
           >
             Sign in
           </Button>
-
-          <p className="mt-4 text-center text-xs text-slate-400">
-            Demo: admin@bank.com / admin123
-          </p>
         </form>
       </div>
     </div>
