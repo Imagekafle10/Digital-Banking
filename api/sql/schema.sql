@@ -57,3 +57,9 @@ CREATE TABLE IF NOT EXISTS payments (
   INDEX idx_payments_accountId (accountId),
   CONSTRAINT fk_payments_account FOREIGN KEY (accountId) REFERENCES accounts(id)
 );
+
+
+ALTER TABLE users
+  ADD COLUMN phone VARCHAR(20) NULL AFTER email,
+  ADD COLUMN dateOfBirth DATE NULL AFTER phone,
+  ADD COLUMN gender ENUM('Male', 'Female', 'Other') NULL AFTER dateOfBirth;

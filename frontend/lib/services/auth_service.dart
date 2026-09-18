@@ -9,10 +9,20 @@ class AuthService {
     required String fullName,
     required String email,
     required String password,
+    required String phone,
+    required DateTime dateOfBirth,
+    required String gender,
   }) async {
     final response = await _client.dio.post(
       ApiConstants.register,
-      data: {'fullName': fullName, 'email': email, 'password': password},
+      data: {
+        'fullName': fullName,
+        'email': email,
+        'password': password,
+        'phone': phone,
+        'dateOfBirth': dateOfBirth.toIso8601String(),
+        'gender': gender,
+      },
     );
     final data = response.data['data'];
     await _client.setAccessToken(data['accessToken'] as String);

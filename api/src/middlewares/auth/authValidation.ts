@@ -19,6 +19,9 @@ export const registerValidation = validate(
     fullName: Joi.string().min(2).max(100).required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(8).required(),
+    phone: Joi.string().min(7).max(20).required(),
+    dateOfBirth: Joi.string().isoDate().required(),
+    gender: Joi.string().valid("Male", "Female", "Other").required(),
   }),
 );
 

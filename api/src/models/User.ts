@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { RowDataPacket, ResultSetHeader } from "mysql2/promise";
 import pool from "../config/database";
-import { IUser } from "../types/auth.types";
+import { IUser, Gender } from "../types/auth.types";
 
 interface UserRow extends RowDataPacket, IUser {}
 
@@ -26,12 +26,23 @@ class User {
     fullName: string;
     email: string;
     passwordHash: string;
+    phone: string;
+    dateOfBirth: string;
+    gender: Gender;
   }): Promise<IUser> {
     const id = randomUUID();
     await pool.query<ResultSetHeader>(
-      `INSERT INTO users (id, fullName, email, password, role, status)
-       VALUES (?, ?, ?, ?, 'user', 'active')`,
-      [id, data.fullName, data.email, data.passwordHash],
+      `INSERT INTO users (id, fullName, email, password, phone, dateOfBirth, gender, role, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'user', 'active')`,
+      [
+        id,
+        data.fullName,
+        data.email,
+        data.passwordHash,
+        data.phone,
+        data.dateOfBirth,
+        data.gender,
+      ],
     );
     return (await User.findById(id)) as IUser;
   }

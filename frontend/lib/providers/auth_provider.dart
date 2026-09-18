@@ -41,11 +41,17 @@ class AuthProvider extends ChangeNotifier {
     required String fullName,
     required String email,
     required String password,
+    required String phone,
+    required DateTime dateOfBirth,
+    required String gender,
   }) async {
     user = await _authService.register(
       fullName: fullName,
       email: email,
       password: password,
+      phone: phone,
+      dateOfBirth: dateOfBirth,
+      gender: gender,
     );
     status = AuthStatus.authenticated;
     notifyListeners();
