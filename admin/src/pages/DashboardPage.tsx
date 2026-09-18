@@ -59,7 +59,7 @@ export function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard title="Total Users" value={formatNumber(stats.totalUsers)}
           sub={`${stats.activeUsers} active · ${stats.suspendedUsers} suspended`}
-          icon={Users} color="bg-blue-50 text-blue-600" />
+          icon={Users} color="bg-primary-50 text-primary-600" />
         <StatCard title="Total Balance" value={formatCurrency(stats.totalBalance)}
           sub={`${stats.activeAccounts} active accounts`}
           icon={CreditCard} color="bg-emerald-50 text-emerald-600" />
@@ -79,8 +79,8 @@ export function DashboardPage() {
               <AreaChart data={chart}>
                 <defs>
                   <linearGradient id="gDep" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#1652f0" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#1652f0" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gWdr" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#ef4444" stopOpacity={0.3} />
@@ -95,7 +95,7 @@ export function DashboardPage() {
                   contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13 }}
                 />
                 <Legend />
-                <Area type="monotone" dataKey="deposits" name="Deposits" stroke="#3b82f6" fill="url(#gDep)" strokeWidth={2} />
+                <Area type="monotone" dataKey="deposits" name="Deposits" stroke="#1652f0" fill="url(#gDep)" strokeWidth={2} />
                 <Area type="monotone" dataKey="withdrawals" name="Withdrawals" stroke="#ef4444" fill="url(#gWdr)" strokeWidth={2} />
                 <Area type="monotone" dataKey="transfers" name="Transfers" stroke="#8b5cf6" fill="none" strokeWidth={2} />
               </AreaChart>
@@ -122,7 +122,7 @@ export function DashboardPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-blue-600" />
+                <Users className="h-4 w-4 text-primary-600" />
                 <span className="text-sm text-slate-600">Suspended users</span>
               </div>
               <span className="text-sm font-semibold text-slate-900">{stats.suspendedUsers}</span>

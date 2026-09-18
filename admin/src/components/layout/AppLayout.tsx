@@ -17,7 +17,7 @@ export function AppLayout() {
   const title = titles[pathname] || 'Admin';
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-[#f6f8fc]">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header title={title} onMenu={() => setSidebarOpen(true)} />
