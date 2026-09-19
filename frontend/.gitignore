@@ -1,13 +1,15 @@
+# Flutter / Dart
 .dart_tool/
 .packages
+.pub-cache/
+.pub/
 build/
-android/
-ios/
-web/
-linux/
-macos/
-windows/
 .flutter-plugins
 .flutter-plugins-dependencies
 *.iml
 .idea/
+
+# NOTE: android/, ios/, web/, linux/, macos/ and windows/ MUST be committed
+# so that GitHub Actions can build the app. They have their own .gitignore
+# files that skip the generated bits.
+*.zip
