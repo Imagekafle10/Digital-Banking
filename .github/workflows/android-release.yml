@@ -31,10 +31,14 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install Android SDK 36
+        working-directory: .
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-36"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36"
 
       - name: Flutter Pub Get
         run: flutter pub get
