@@ -1,0 +1,5 @@
+# Copy to key.properties (git-ignored) for LOCAL signed builds. Never commit the real one.
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=C:\\Users\\Image\\keys\\release.jks

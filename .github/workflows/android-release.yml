@@ -4,10 +4,40 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "frontend/pubspec.yaml" # only runs when pubspec.yaml changes (e.g. a version bump)
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build:
+  check:
+    name: Check version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      is_new: ${{ steps.v.outputs.is_new }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version and check whether it is already released
+        id: v
+        run: |
+          VERSION=$(grep '^version:' frontend/pubspec.yaml | sed 's/version:[[:space:]]*//; s/+.*//' | tr -d '\r ')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null 2>&1; then
+            echo "is_new=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::v$VERSION is already released. Bump 'version:' in frontend/pubspec.yaml to release again."
+          else
+            echo "is_new=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    name: Build and publish
+    needs: check
+    if: needs.check.outputs.is_new == 'true'
     runs-on: ubuntu-latest
 
     defaults:
@@ -27,32 +57,59 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.35.0"
+          flutter-version: "3.35.7"
           channel: stable
           cache: true
 
-      - name: Install Android SDK 36
-        working-directory: .
-        run: |
-          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-          if [ ! -f "$SDKMANAGER" ]; then
-            echo "sdkmanager not found at $SDKMANAGER"
-            find "$ANDROID_HOME" -name sdkmanager -type f
+      - name: Install SDK platform, build-tools and NDK
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.0.12077973"
+
+      - name: Set up release signing
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KS_B64" ]; then
+            echo "::error::Signing secrets are missing. Add ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD in Settings > Secrets and variables > Actions."
             exit 1
           fi
-
-          yes | "$SDKMANAGER" --licenses > /dev/null || true
-          "$SDKMANAGER" "platform-tools" "platforms;android-36"
+          echo "$KS_B64" | base64 --decode > "${{ github.workspace }}/frontend/android/release.jks"
+          {
+            echo "storePassword=$KS_PASS"
+            echo "keyPassword=$KEY_PASS"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "storeFile=${{ github.workspace }}/frontend/android/release.jks"
+          } > android/key.properties
 
       - name: Flutter Pub Get
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --release
+        run: >
+          flutter build apk --release
+          --build-name=${{ needs.check.outputs.version }}
+          --build-number=${{ github.run_number }}
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Rename APK
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             build/app/outputs/flutter-apk/image-bank-v${{ needs.check.outputs.version }}.apk
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: mobile-banking-apk
-          path: frontend/build/app/outputs/flutter-apk/app-release.apk
+          tag_name: v${{ needs.check.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Image Bank v${{ needs.check.outputs.version }}
+          generate_release_notes: true
+          body: |
+            ## Installation
+            Download `image-bank-v${{ needs.check.outputs.version }}.apk`, install it on an Android device, and allow installation from unknown sources if asked.
+          files: frontend/build/app/outputs/flutter-apk/image-bank-v${{ needs.check.outputs.version }}.apk
