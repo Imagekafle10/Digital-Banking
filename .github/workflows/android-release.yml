@@ -63,6 +63,8 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: "" # the runner already has the SDK; skip the obsolete 'tools' package that made this step fail
 
       - name: Install SDK platform, build-tools and NDK
         run: |
