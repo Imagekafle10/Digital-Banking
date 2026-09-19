@@ -12,6 +12,21 @@
   --color-primary-700: #0b3fc4;
   --color-primary-800: #0933a0;
   --color-primary-900: #07267a;
+  --color-primary-950: #041a52;
+
+  /* Blue-tinted neutrals: every slate-* utility now sits in the blue family */
+  --color-slate-50: #f6f8fc;
+  --color-slate-100: #eaeff8;
+  --color-slate-200: #d8e0ef;
+  --color-slate-300: #bcc8de;
+  --color-slate-400: #8493b3;
+  --color-slate-500: #5b6c8f;
+  --color-slate-600: #43547a;
+  --color-slate-700: #2d3d5e;
+  --color-slate-800: #1b2745;
+  --color-slate-900: #10192b;
+  --color-slate-950: #0a1020;
+
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -24,6 +39,7 @@ body {
   color: #10192b;
   -webkit-font-smoothing: antialiased;
 }
+::selection { background: var(--color-primary-200); color: var(--color-primary-900); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #c5d0e6; border-radius: 3px; }

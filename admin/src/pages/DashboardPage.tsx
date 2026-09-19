@@ -62,13 +62,13 @@ export function DashboardPage() {
           icon={Users} color="bg-primary-50 text-primary-600" />
         <StatCard title="Total Balance" value={formatCurrency(stats.totalBalance)}
           sub={`${stats.activeAccounts} active accounts`}
-          icon={CreditCard} color="bg-emerald-50 text-emerald-600" />
+          icon={CreditCard} color="bg-sky-50 text-sky-600" />
         <StatCard title="Transactions" value={formatNumber(stats.totalTransactions)}
           sub={`${stats.todayTransactions} today · ${formatCurrency(stats.volumeToday)}`}
-          icon={ArrowLeftRight} color="bg-violet-50 text-violet-600" />
+          icon={ArrowLeftRight} color="bg-primary-100 text-primary-700" />
         <StatCard title="Payments" value={formatNumber(stats.totalPayments)}
           sub={`${stats.pendingPayments} pending`}
-          icon={Wallet} color="bg-amber-50 text-amber-600" />
+          icon={Wallet} color="bg-sky-100 text-sky-700" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -97,7 +97,7 @@ export function DashboardPage() {
                 <Legend />
                 <Area type="monotone" dataKey="deposits" name="Deposits" stroke="#1652f0" fill="url(#gDep)" strokeWidth={2} />
                 <Area type="monotone" dataKey="withdrawals" name="Withdrawals" stroke="#ef4444" fill="url(#gWdr)" strokeWidth={2} />
-                <Area type="monotone" dataKey="transfers" name="Transfers" stroke="#8b5cf6" fill="none" strokeWidth={2} />
+                <Area type="monotone" dataKey="transfers" name="Transfers" stroke="#38bdf8" fill="none" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </CardBody>
@@ -129,7 +129,7 @@ export function DashboardPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
               <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-violet-600" />
+                <CreditCard className="h-4 w-4 text-sky-600" />
                 <span className="text-sm text-slate-600">Active accounts</span>
               </div>
               <span className="text-sm font-semibold text-slate-900">{stats.activeAccounts}</span>
