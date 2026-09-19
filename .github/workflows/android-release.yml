@@ -1,43 +1,60 @@
 name: Android Release
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "frontend/pubspec.yaml" # only runs when pubspec.yaml changes (e.g. a version bump)
-  workflow_dispatch:
+  workflow_dispatch: # releases ONLY when you click "Run workflow" on the Actions tab
+    inputs:
+      bump:
+        description: "Which part of the version to increase"
+        type: choice
+        options:
+          - patch # 1.0.2 -> 1.0.3  (bug fixes, small updates)
+          - minor # 1.0.2 -> 1.1.0  (new features)
+          - major # 1.0.2 -> 2.0.0  (big changes)
+        default: patch
 
 permissions:
   contents: write
 
+concurrency:
+  group: android-release # two quick runs never pick the same version
+  cancel-in-progress: false
+
 jobs:
   check:
-    name: Check version
+    name: Work out next version
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.v.outputs.version }}
-      is_new: ${{ steps.v.outputs.is_new }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Read version and check whether it is already released
+      - name: Pick next version
         id: v
+        env:
+          BUMP: ${{ inputs.bump }}
         run: |
-          VERSION=$(grep '^version:' frontend/pubspec.yaml | sed 's/version:[[:space:]]*//; s/+.*//' | tr -d '\r ')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null 2>&1; then
-            echo "is_new=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::v$VERSION is already released. Bump 'version:' in frontend/pubspec.yaml to release again."
+          # newest existing release tag (vX.Y.Z); falls back to pubspec version if there is none
+          LATEST=$(git ls-remote --tags --refs origin 'v*' \
+                   | sed 's#.*refs/tags/v##' \
+                   | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
+                   | sort -V | tail -1)
+          if [ -z "$LATEST" ]; then
+            VERSION=$(grep '^version:' frontend/pubspec.yaml | sed 's/version:[[:space:]]*//; s/+.*//' | tr -d '\r ')
           else
-            echo "is_new=true" >> "$GITHUB_OUTPUT"
+            IFS=. read -r MA MI PA <<< "$LATEST"
+            case "$BUMP" in
+              major) VERSION="$((MA + 1)).0.0" ;;
+              minor) VERSION="${MA}.$((MI + 1)).0" ;;
+              *)     VERSION="${MA}.${MI}.$((PA + 1))" ;;
+            esac
           fi
+          echo "Latest: ${LATEST:-none}  ->  Next: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
   release:
     name: Build and publish
     needs: check
-    if: needs.check.outputs.is_new == 'true'
     runs-on: ubuntu-latest
 
     defaults:
@@ -64,7 +81,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: "" # the runner already has the SDK; skip the obsolete 'tools' package that made this step fail
+          packages: ""
 
       - name: Install SDK platform, build-tools and NDK
         run: |
