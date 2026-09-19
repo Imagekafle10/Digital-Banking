@@ -79,8 +79,8 @@ jobs:
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -z "$KS_B64" ]; then
-            echo "::error::Signing secrets are missing. Add ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD in Settings > Secrets and variables > Actions."
-            exit 1
+            echo "::warning::No signing secrets - building with the debug key. Add the ANDROID_* secrets later for a permanent release key."
+            exit 0
           fi
           echo "$KS_B64" | base64 --decode > "${{ github.workspace }}/frontend/android/release.jks"
           {
